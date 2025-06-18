@@ -10,6 +10,8 @@ import {
 import { TodosService } from './todos.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
+import { EventPattern } from '@nestjs/microservices';
+import { Todo } from './entities/todo.entity';
 
 @Controller('todos')
 export class TodosController {
@@ -27,7 +29,7 @@ export class TodosController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.todosService.findOne(+id);
+    return this.todosService.findOne(id);
   }
 
   @Patch(':id')
@@ -38,5 +40,19 @@ export class TodosController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.todosService.remove(id);
+  }
+
+  @EventPattern('create-todo-event')
+  handleCreateTodoEvent(todo: Todo) {
+    console.log(`handleCreateTodoEvent with payload: ${JSON.stringify(todo)}`);
+
+    void this.todosService.handleCreate(todo);
+  }
+
+  @EventPattern('update-todo-event')
+  handleUpdateTodoEvent(todo: Todo) {
+    console.log(`handleUpdateTodoEvent with payload: ${JSON.stringify(todo)}`);
+
+    void this.todosService.handleUpdate(todo);
   }
 }

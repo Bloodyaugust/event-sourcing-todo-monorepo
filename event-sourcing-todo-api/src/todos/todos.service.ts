@@ -4,10 +4,15 @@ import { UpdateTodoDto } from './dto/update-todo.dto';
 import { KafkaService } from 'src/kafka/kafka.service';
 import { Todo } from './entities/todo.entity';
 import { randomUUID } from 'crypto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TodosService {
-  constructor(private readonly kafkaService: KafkaService) {}
+  constructor(
+    private readonly kafkaService: KafkaService,
+    @InjectRepository(Todo) private todosRepository: Repository<Todo>,
+  ) {}
 
   create(createTodoDto: CreateTodoDto) {
     const createdAt: string = new Date().toISOString();
@@ -25,11 +30,11 @@ export class TodosService {
   }
 
   findAll() {
-    return `This action returns all todos`;
+    return this.todosRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} todo`;
+  findOne(id: string) {
+    return this.todosRepository.findOneBy({ id });
   }
 
   @HttpCode(204)
@@ -50,5 +55,13 @@ export class TodosService {
       updatedAt: updatedAt,
       id,
     });
+  }
+
+  async handleCreate(newTodo: Todo) {
+    await this.todosRepository.save(newTodo);
+  }
+
+  async handleUpdate(updatingTodo: Todo) {
+    await this.todosRepository.save(updatingTodo);
   }
 }
